@@ -1,8 +1,16 @@
+import 'package:expenso_474/data/helper/db_helper.dart';
 import 'package:expenso_474/domain/constants/app_routes.dart';
+import 'package:expenso_474/ui/pages/on_boarding/bloc/user_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    BlocProvider(
+      create: (context) => UserBloc(dbHelper: DBHelper.getInstance()),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

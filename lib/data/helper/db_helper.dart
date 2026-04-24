@@ -77,17 +77,16 @@ class DBHelper {
   Future<int> createUser({required UserModel newUser}) async {
     Database db = await initDB();
     bool check = await isEmailAlreadyExists(email: newUser.email);
-    if(check){
+    if (check) {
       return 2;
     } else {
       int rowsEffected = await db.insert(TABLE_USER, newUser.toMap());
-      if(rowsEffected>0){
+      if (rowsEffected > 0) {
         return 3;
       } else {
         return 1;
       }
     }
-
   }
 
   Future<bool> isEmailAlreadyExists({required String email}) async {
@@ -99,5 +98,39 @@ class DBHelper {
     );
 
     return mUsers.isNotEmpty;
+  }
+
+  ///auth user
+  ///1->invalid email
+  ///2->incorrect pass
+  ///3->authenticated
+  Future<int> authUser({required String email, required String pass}) async {
+    Database db = await initDB();
+    List<Map<String, dynamic>> mUser = await db.query(
+      TABLE_USER,
+      where: "$COLUMN_USER_EMAIL = ? and $COLUMN_USER_PASS = ?",
+      whereArgs: [email, pass],
+    );
+
+    if(mUser.isEmpty){
+
+      List<Map<String, dynamic>> emailUser = await db.query(
+        TABLE_USER,
+        where: "$COLUMN_USER_EMAIL = ?",
+        whereArgs: [email],
+      );
+
+      if(emailUser.isNotEmpty){
+        return 2;
+      } else {
+        return 1;
+      }
+
+    } else {
+      return 3;
+    }
+
+
+
   }
 }
