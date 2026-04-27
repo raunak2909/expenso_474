@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:expenso_474/data/models/user_model.dart';
+import 'package:expenso_474/domain/constants/app_constants.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
@@ -103,7 +105,7 @@ class DBHelper {
   ///auth user
   ///1->invalid email
   ///2->incorrect pass
-  ///3->authenticated
+  ///3->authenticate
   Future<int> authUser({required String email, required String pass}) async {
     Database db = await initDB();
     List<Map<String, dynamic>> mUser = await db.query(
@@ -127,6 +129,8 @@ class DBHelper {
       }
 
     } else {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setInt(AppConstants.PREF_USER_KEY, mUser[0][COLUMN_USER_ID]);
       return 3;
     }
 

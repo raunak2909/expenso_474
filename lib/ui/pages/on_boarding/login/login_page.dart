@@ -16,6 +16,7 @@ class LoginPage extends StatelessWidget {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   bool isLoading = false;
+  bool isLogin = true;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +83,12 @@ class LoginPage extends StatelessWidget {
                 ),
                 SizedBox(height: 11),
                 BlocConsumer<UserBloc, UserState>(
+                  buildWhen: (ps, cs){
+                    return isLogin;
+                  },
+                  listenWhen: (ps, cs){
+                    return isLogin;
+                  },
                   listener: (context, state) {
                     if (state is UserLoadingState) {
                       isLoading = true;
@@ -114,6 +121,8 @@ class LoginPage extends StatelessWidget {
                       title: isLoading ? "Authenticating user.." : "Login",
                       onTap: () {
                         if (formKey.currentState!.validate()) {
+                          isLogin = true;
+                          print(isLogin);
                           context.read<UserBloc>().add(
                             UserLoginEvent(
                               email: emailController.text,
@@ -129,6 +138,8 @@ class LoginPage extends StatelessWidget {
                 Center(
                   child: InkWell(
                     onTap: () {
+                      isLogin  = false;
+                      print(isLogin);
                       Navigator.pushNamed(context, AppRoutes.SIGN_UP_ROUTE);
                     },
                     child: Text.rich(
