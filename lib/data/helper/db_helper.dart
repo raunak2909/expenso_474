@@ -66,7 +66,7 @@ class DBHelper {
         $COLUMN_EXPENSE_AMOUNT real, 
         $COLUMN_EXPENSE_CREATED_AT text, 
         $COLUMN_EXPENSE_CATEGORY_ID integer,
-        $COLUMN_EXPENSE_TYPE integer,
+        $COLUMN_EXPENSE_TYPE integer, ///(0 for debit, 1 for credit)
          )''');
       },
     );

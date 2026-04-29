@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../ui/pages/add_expense/add_expense_page.dart';
 import '../../ui/pages/dashboard/dashboard_page.dart';
 import '../../ui/pages/on_boarding/login/login_page.dart';
 import '../../ui/pages/on_boarding/sign_up/sign_up_page.dart';
@@ -13,6 +14,7 @@ class AppRoutes{
   static const String LOGIN_ROUTE = '/login';
   static const String SIGN_UP_ROUTE = '/sign_up';
   static const String DASHBOARD_ROUTE = '/dashboard';
+  static const String ADD_EXPENSE_ROUTE = '/add-expense';
 
 
   static Map<String, WidgetBuilder> mRoutes = {
@@ -20,6 +22,7 @@ class AppRoutes{
     LOGIN_ROUTE: (context) => LoginPage(),
     SIGN_UP_ROUTE: (context) => SignUpPage(),
     DASHBOARD_ROUTE: (context) => DashboardPage(),
+    ADD_EXPENSE_ROUTE: (context) => AddExpensePage(),
   };
 
 
