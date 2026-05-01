@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../models/expense_model.dart';
+
 class DBHelper {
   DBHelper._();
 
@@ -32,7 +34,7 @@ class DBHelper {
   static String COLUMN_EXPENSE_AMOUNT = "e_amount";
   static String COLUMN_EXPENSE_CREATED_AT = "e_date";
   static String COLUMN_EXPENSE_CATEGORY_ID = "e_cat_id";
-  static String COLUMN_EXPENSE_TYPE = "e_type";
+  static String COLUMN_EXPENSE_TYPE = "e_type"; ///(0 for debit, 1 for credit)
 
   Future<Database> initDB() async {
     mDB ??= await openDB();
@@ -66,8 +68,7 @@ class DBHelper {
         $COLUMN_EXPENSE_AMOUNT real, 
         $COLUMN_EXPENSE_CREATED_AT text, 
         $COLUMN_EXPENSE_CATEGORY_ID integer,
-        $COLUMN_EXPENSE_TYPE integer, ///(0 for debit, 1 for credit)
-         )''');
+        $COLUMN_EXPENSE_TYPE integer )''');
       },
     );
   }
@@ -133,8 +134,27 @@ class DBHelper {
       prefs.setInt(AppConstants.PREF_USER_KEY, mUser[0][COLUMN_USER_ID]);
       return 3;
     }
+  }
 
 
+  ///expense
+  ///insert
+  Future<bool> addExpense({required ExpenseModel newExpense}) async {
+    Database db = await initDB();
+    int rowsEffected = await db.insert(TABLE_EXPENSE, newExpense.toMap());
+    return rowsEffected>0;
+  }
+
+  Future<List<ExpenseModel>> fetchAllExpenses() async {
+    Database db = await initDB();
+    List<Map<String, dynamic>> mData = await db.query(TABLE_EXPENSE);
+    List<ExpenseModel> mExpenses = [];
+
+    for(Map<String, dynamic> eachExp in mData){
+      mExpenses.add(ExpenseModel.fromMap(eachExp));
+    }
+
+    return mExpenses;
 
   }
 }

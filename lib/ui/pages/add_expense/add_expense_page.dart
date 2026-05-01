@@ -1,6 +1,14 @@
+import 'package:expenso_474/data/models/expense_model.dart';
 import 'package:expenso_474/domain/constants/app_constants.dart';
 import 'package:expenso_474/domain/utils/ui_helper.dart';
+import 'package:expenso_474/ui/pages/add_expense/bloc/expense_bloc.dart';
+import 'package:expenso_474/ui/pages/add_expense/bloc/expense_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'bloc/expense_state.dart';
 
 class AddExpensePage extends StatelessWidget {
   var titleController = TextEditingController();
@@ -10,6 +18,9 @@ class AddExpensePage extends StatelessWidget {
   List<String> mTypes = ["Debit", "Credit"];
   int selectedTypeIndex = 0;
   int selectedCatIndex = -1;
+  DateTime? selectedDate;
+  DateFormat df = DateFormat.yMMMEd();
+  bool isLoading  = false;
 
   @override
   Widget build(BuildContext context) {
@@ -179,24 +190,110 @@ class AddExpensePage extends StatelessWidget {
               },
             ),
             SizedBox(height: 11),
-            InkWell(
-              onTap: (){
-                showDatePicker(
-                    context: context,
-                    firstDate: DateTime.now().subtract(Duration(days: 732)),
-                    lastDate: DateTime.now());
+            StatefulBuilder(
+              builder: (context, sS) {
+                return InkWell(
+                  onTap: () async {
+                    selectedDate = await showDatePicker(
+                      context: context,
+                      firstDate: DateTime.now().subtract(Duration(days: 732)),
+                      lastDate: DateTime.now(),
+                    );
+                    sS(() {});
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(11),
+                      border: Border.all(),
+                    ),
+                    child: Center(
+                      child: Text(df.format(selectedDate ?? DateTime.now())),
+                    ),
+                  ),
+                );
               },
-              child: Container(
-                width: double.infinity,
-                height: 55,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(11),
-                  border: Border.all(),
-                ),
-                child: Center(
-                  child: Text('Choose a Date'),
-                ),
-              ),
+            ),
+            SizedBox(height: 11),
+            BlocConsumer<ExpenseBloc, ExpenseState>(
+              listener: (_, state){
+
+                if(state is ExpenseLoadingState){
+                  isLoading = true;
+                }
+
+                if(state is ExpenseLoadedState){
+                  isLoading = false;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Expense added successfully"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  Navigator.pop(context);
+                }
+
+                if(state is ExpenseErrorState){
+                  isLoading = false;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.errorMsg),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+
+              },
+              builder: (context, state) {
+                return SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      /*maximumSize: Size(double.infinity, 55),
+                      minimumSize: Size(double.infinity, 55),*/
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.pink.shade200,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                    ),
+                    onPressed: () async {
+                      if (selectedCatIndex >= 0) {
+
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        int uid = prefs.getInt(AppConstants.PREF_USER_KEY) ?? 0;
+
+                        context.read<ExpenseBloc>().add(
+                          AddExpenseEvent(
+                            newExp: ExpenseModel(
+                              uId: uid,
+                              eTitle: titleController.text,
+                              eRemark: remarkController.text,
+                              eType: selectedTypeIndex,
+                              eCatId: AppConstants.mCat[selectedCatIndex].id,
+                              eCreatedAt: (selectedDate ?? DateTime.now()).millisecondsSinceEpoch,
+                              eAmt: double.parse(amtController.text),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: isLoading ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: CircularProgressIndicator(color: Colors.white,),
+                        ),
+                        SizedBox(width: 11),
+                        Text('Adding Expense...'),
+                      ],
+                    ) : Text('Add Expense'),
+                  ),
+                );
+              }
             ),
           ],
         ),
