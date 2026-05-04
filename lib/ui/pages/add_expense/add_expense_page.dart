@@ -194,11 +194,17 @@ class AddExpensePage extends StatelessWidget {
               builder: (context, sS) {
                 return InkWell(
                   onTap: () async {
-                    selectedDate = await showDatePicker(
+                    DateTime? userSelection = await showDatePicker(
+                      currentDate: selectedDate ?? DateTime.now(),
                       context: context,
                       firstDate: DateTime.now().subtract(Duration(days: 732)),
                       lastDate: DateTime.now(),
                     );
+                    if(userSelection!=null){
+                      selectedDate = userSelection;
+                    } else {
+                      selectedDate ??= DateTime.now();
+                    }
                     sS(() {});
                   },
                   child: Container(
