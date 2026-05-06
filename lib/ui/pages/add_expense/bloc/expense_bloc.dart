@@ -1,6 +1,8 @@
 import 'package:expenso_474/data/helper/db_helper.dart';
+import 'package:expenso_474/data/models/cat_model.dart';
 import 'package:expenso_474/data/models/expense_model.dart';
 import 'package:expenso_474/data/models/filter_expense_model.dart';
+import 'package:expenso_474/domain/constants/app_constants.dart';
 import 'package:expenso_474/ui/pages/add_expense/bloc/expense_event.dart';
 import 'package:expenso_474/ui/pages/add_expense/bloc/expense_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +10,7 @@ import 'package:intl/intl.dart';
 
 class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
   DBHelper dbHelper;
-  DateFormat df = DateFormat.yMMMMEEEEd();
+
 
   ExpenseBloc({required this.dbHelper}) : super(ExpenseInitialState()) {
     on<AddExpenseEvent>((event, emit) async {
@@ -28,64 +30,110 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       emit(ExpenseLoadingState());
       var allExp = await dbHelper.fetchAllExpenses();
       emit(ExpenseLoadedState(
-          expenses: filterExpensesByType(allExpenses: allExp)));
+          expenses: filterExpensesByType(allExpenses: allExp, filterType: event.filterType)));
     });
   }
 
+  ///0->date-wise, 1->month-wise, 2->year-wise, 3->category-wise
   List<FilterExpenseModel> filterExpensesByType(
-      {required List<ExpenseModel> allExpenses}) {
+      {required List<ExpenseModel> allExpenses, int filterType = 0}) {
     List<FilterExpenseModel> listFilterExpModel = [];
 
+
     ///filter
-    ///date-wise
-    ///month-wise
-    ///year-wise
-    ///category-wise
-    List<String> uniqueDates = [];
-    Set<String> uniqueDateSet = {};
+    if(filterType<3){
+      ///date-wise
+      ///month-wise
+      ///year-wise
 
-    for (ExpenseModel eachExp in allExpenses) {
-      String eachExpDate = df.format(
-          DateTime
-              .fromMillisecondsSinceEpoch(eachExp.eCreatedAt));
+      List<String> uniqueDates = [];
+      Set<String> uniqueDateSet = {};
 
-      uniqueDateSet.add(eachExpDate);
+      ///date format
+      DateFormat df = DateFormat.yMMMMEEEEd();
 
-      /*if(!uniqueDates.contains(eachExpDate)){
-        uniqueDates.add(eachExpDate);
-      }*/
-    }
+      if(filterType==1){
+        ///month format
+        df = DateFormat.yMMMM();
+      } else if(filterType==2){
+        ///year format
+        df = DateFormat.y();
+      }
 
-    uniqueDates = uniqueDateSet.toList();
-    print(uniqueDates);
-
-    ///filter data according unique dates
-    for (String eachDate in uniqueDates) {
-      num eachTypeExpBal = 0.0;
-      List<ExpenseModel> eachTypeExp = [];
 
       for (ExpenseModel eachExp in allExpenses) {
         String eachExpDate = df.format(
             DateTime
                 .fromMillisecondsSinceEpoch(eachExp.eCreatedAt));
 
+        uniqueDateSet.add(eachExpDate);
 
-        if (eachDate == eachExpDate) {
-          eachTypeExp.add(eachExp);
-
-          if (eachExp.eType == 0) {
-            eachTypeExpBal -= eachExp.eAmt;
-          } else {
-            eachTypeExpBal += eachExp.eAmt;
-          }
-        }
+        /*if(!uniqueDates.contains(eachExpDate)){
+        uniqueDates.add(eachExpDate);
+      }*/
       }
 
-      listFilterExpModel.add(
-          FilterExpenseModel(
-              title: eachDate,
-              balance: eachTypeExpBal,
-              mExp: eachTypeExp));
+      uniqueDates = uniqueDateSet.toList();
+      print(uniqueDates);
+
+      ///filter data according unique dates
+      for (String eachDate in uniqueDates) {
+        num eachTypeExpBal = 0.0;
+        List<ExpenseModel> eachTypeExp = [];
+
+        for (ExpenseModel eachExp in allExpenses) {
+          String eachExpDate = df.format(
+              DateTime
+                  .fromMillisecondsSinceEpoch(eachExp.eCreatedAt));
+
+
+          if (eachDate == eachExpDate) {
+            eachTypeExp.add(eachExp);
+
+            if (eachExp.eType == 0) {
+              eachTypeExpBal -= eachExp.eAmt;
+            } else {
+              eachTypeExpBal += eachExp.eAmt;
+            }
+          }
+        }
+
+        listFilterExpModel.add(
+            FilterExpenseModel(
+                title: eachDate,
+                balance: eachTypeExpBal,
+                mExp: eachTypeExp));
+      }
+    } else {
+      /// category-wise
+
+      ///filter data according cat id
+      for (CatModel eachCat in AppConstants.mCat) {
+        num eachTypeExpBal = 0.0;
+        List<ExpenseModel> eachTypeExp = [];
+
+        for (ExpenseModel eachExp in allExpenses) {
+
+
+          if (eachCat.id == eachExp.eCatId) {
+            eachTypeExp.add(eachExp);
+
+            if (eachExp.eType == 0) {
+              eachTypeExpBal -= eachExp.eAmt;
+            } else {
+              eachTypeExpBal += eachExp.eAmt;
+            }
+          }
+        }
+
+        if(eachTypeExp.isNotEmpty){
+          listFilterExpModel.add(
+              FilterExpenseModel(
+                  title: eachCat.title,
+                  balance: eachTypeExpBal,
+                  mExp: eachTypeExp));
+        }
+      }
     }
 
 

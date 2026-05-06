@@ -7,4 +7,7 @@ class AddExpenseEvent extends ExpenseEvent{
   AddExpenseEvent({required this.newExp});
 }
 
-class FetchAllExpensesEvent extends ExpenseEvent{}
+class FetchAllExpensesEvent extends ExpenseEvent{
+  int filterType;
+  FetchAllExpensesEvent({this.filterType=0});
+}

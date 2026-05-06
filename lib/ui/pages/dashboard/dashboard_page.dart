@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/constants/app_routes.dart';
+import '../add_expense/bloc/expense_bloc.dart';
+import '../add_expense/bloc/expense_event.dart';
 import 'nav_pages/chart_nav_page.dart';
 import 'nav_pages/home_nav_page.dart';
 
@@ -19,6 +22,12 @@ class _DashboardPageState extends State<DashboardPage> {
   ];
 
   int selectedNavIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ExpenseBloc>().add(FetchAllExpensesEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
