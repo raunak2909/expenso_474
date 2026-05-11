@@ -9,8 +9,11 @@ import 'package:expenso_474/domain/constants/app_constants.dart';
 import 'package:expenso_474/ui/pages/add_expense/bloc/expense_bloc.dart';
 import 'package:expenso_474/ui/pages/add_expense/bloc/expense_event.dart';
 import 'package:expenso_474/ui/pages/add_expense/bloc/expense_state.dart';
+import 'package:expenso_474/ui/pages/on_boarding/bloc/user_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../on_boarding/bloc/user_bloc.dart';
 
 class HomeNavPage extends StatefulWidget {
   const HomeNavPage({super.key});
@@ -57,34 +60,53 @@ class _HomeNavPageState extends State<HomeNavPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(image: AssetImage("assets/images/user.png"))
-                      ),
-                    ),
-                    SizedBox(
-                      width: 11,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Morning", style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey
-                        ),),
-                        Text("User Name", style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900
-                        ),)
-                      ],
-                    ),
-                  ],
+                BlocBuilder<UserBloc, UserState>(
+                  builder: (context, state) {
+                    if(state is UserLoadingState){
+                      return CircularProgressIndicator();
+                    }
+
+                    if(state is UserSuccessState){
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(image: AssetImage("assets/images/user.png"))
+                            ),
+                          ),
+                          SizedBox(
+                            width: 11,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Morning", style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey
+                              ),),
+                              Text(state.currentUser!.name, style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900
+                              ),),
+                              Text("₹${state.currentUser!.balance}", style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900
+                              ),)
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+
+                    if(state is UserFailureState){
+                      return Text(state.errorMsg);
+                    }
+                    return Container();
+                  }
                 ),
                 DropdownMenuFormField(
                   width: 200,

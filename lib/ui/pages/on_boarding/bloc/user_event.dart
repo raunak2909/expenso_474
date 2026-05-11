@@ -11,3 +11,5 @@ class UserSignUpEvent extends UserEvent {
   UserModel newUser;
   UserSignUpEvent({required this.newUser});
 }
+
+class GetUserDetailsEvent extends UserEvent{}

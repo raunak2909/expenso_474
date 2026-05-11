@@ -27,7 +27,7 @@ class UserModel {
       budget: map[DBHelper.COLUMN_USER_BUDGET],
       balance: map[DBHelper.COLUMN_USER_BALANCE],
       pass: map[DBHelper.COLUMN_USER_PASS],
-      createAt: map[DBHelper.COLUMN_USER_CREATED_AT],
+      createAt: int.parse(map[DBHelper.COLUMN_USER_CREATED_AT]),
     );
   }
 
@@ -40,7 +40,7 @@ class UserModel {
       DBHelper.COLUMN_USER_BUDGET: budget,
       DBHelper.COLUMN_USER_BALANCE: balance,
       DBHelper.COLUMN_USER_PASS: pass,
-      DBHelper.COLUMN_USER_CREATED_AT: createAt,
+      DBHelper.COLUMN_USER_CREATED_AT: createAt.toString(),
     };
   }
 }

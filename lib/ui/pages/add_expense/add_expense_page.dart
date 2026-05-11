@@ -8,6 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../on_boarding/bloc/user_bloc.dart';
+import '../on_boarding/bloc/user_event.dart';
 import 'bloc/expense_state.dart';
 
 class AddExpensePage extends StatelessWidget {
@@ -237,6 +239,7 @@ class AddExpensePage extends StatelessWidget {
                       backgroundColor: Colors.green,
                     ),
                   );
+                  context.read<UserBloc>().add(GetUserDetailsEvent());
                   Navigator.pop(context);
                 }
 

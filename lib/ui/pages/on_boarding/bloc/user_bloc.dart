@@ -1,4 +1,5 @@
 import 'package:expenso_474/data/helper/db_helper.dart';
+import 'package:expenso_474/data/models/user_model.dart';
 import 'package:expenso_474/ui/pages/on_boarding/bloc/user_event.dart';
 import 'package:expenso_474/ui/pages/on_boarding/bloc/user_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,6 +19,15 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       } else {
         emit(UserFailureState(errorMsg: "Something went wrong!!"));
       }
+    });
+
+    on<GetUserDetailsEvent>((event, emit) async {
+      emit(UserLoadingState());
+
+      UserModel user = await dbHelper.getUserDetails();
+
+      emit(UserSuccessState(currentUser: user));
+
     });
 
     on<UserLoginEvent>((event, emit) async {

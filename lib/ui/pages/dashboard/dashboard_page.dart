@@ -1,3 +1,5 @@
+import 'package:expenso_474/ui/pages/on_boarding/bloc/user_bloc.dart';
+import 'package:expenso_474/ui/pages/on_boarding/bloc/user_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,6 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     context.read<ExpenseBloc>().add(FetchAllExpensesEvent());
+    context.read<UserBloc>().add(GetUserDetailsEvent());
   }
 
   @override

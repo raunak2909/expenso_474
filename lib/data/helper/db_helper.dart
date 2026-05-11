@@ -34,7 +34,9 @@ class DBHelper {
   static String COLUMN_EXPENSE_AMOUNT = "e_amount";
   static String COLUMN_EXPENSE_CREATED_AT = "e_date";
   static String COLUMN_EXPENSE_CATEGORY_ID = "e_cat_id";
-  static String COLUMN_EXPENSE_TYPE = "e_type"; ///(0 for debit, 1 for credit)
+  static String COLUMN_EXPENSE_TYPE = "e_type";
+
+  ///(0 for debit, 1 for credit)
 
   Future<Database> initDB() async {
     mDB ??= await openDB();
@@ -92,6 +94,16 @@ class DBHelper {
     }
   }
 
+  Future<UserModel> getUserDetails() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int uid = prefs.getInt(AppConstants.PREF_USER_KEY) ?? 0;
+
+    Database db = await initDB();
+    List<Map<String, dynamic>> mData = await db.query(TABLE_USER, where: "$COLUMN_USER_ID = ?", whereArgs: ['$uid']);
+
+    return UserModel.fromMap(mData[0]);
+  }
+
   Future<bool> isEmailAlreadyExists({required String email}) async {
     Database db = await initDB();
     List<Map<String, dynamic>> mUsers = await db.query(
@@ -115,20 +127,18 @@ class DBHelper {
       whereArgs: [email, pass],
     );
 
-    if(mUser.isEmpty){
-
+    if (mUser.isEmpty) {
       List<Map<String, dynamic>> emailUser = await db.query(
         TABLE_USER,
         where: "$COLUMN_USER_EMAIL = ?",
         whereArgs: [email],
       );
 
-      if(emailUser.isNotEmpty){
+      if (emailUser.isNotEmpty) {
         return 2;
       } else {
         return 1;
       }
-
     } else {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setInt(AppConstants.PREF_USER_KEY, mUser[0][COLUMN_USER_ID]);
@@ -136,13 +146,48 @@ class DBHelper {
     }
   }
 
-
   ///expense
   ///insert
   Future<bool> addExpense({required ExpenseModel newExpense}) async {
     Database db = await initDB();
     int rowsEffected = await db.insert(TABLE_EXPENSE, newExpense.toMap());
-    return rowsEffected>0;
+
+
+    /*if (rowsEffected > 0) {
+      updateBalance(newExpense: newExpense);
+    }*/
+
+    return rowsEffected > 0;
+  }
+
+  Future<bool> updateBalance({required ExpenseModel newExpense}) async {
+    Database db = await initDB();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int uid = prefs.getInt(AppConstants.PREF_USER_KEY) ?? 0;
+
+    var data = await db.query(
+      TABLE_USER,
+      where: "$COLUMN_USER_ID = ?",
+      whereArgs: ['$uid'],
+    );
+
+    double balance = data[0][COLUMN_USER_BALANCE] as double;
+
+    if(newExpense.eType==0){
+      //debit
+      balance -= newExpense.eAmt;
+    } else {
+      //credit
+      balance += newExpense.eAmt;
+    }
+
+    int rowsEffected = await db.update(TABLE_USER, {COLUMN_USER_BALANCE: balance},
+      where: "$COLUMN_USER_ID = ?",
+      whereArgs: ['$uid'],
+    );
+
+    return rowsEffected > 0;
   }
 
   Future<List<ExpenseModel>> fetchAllExpenses() async {
@@ -150,11 +195,10 @@ class DBHelper {
     List<Map<String, dynamic>> mData = await db.query(TABLE_EXPENSE);
     List<ExpenseModel> mExpenses = [];
 
-    for(Map<String, dynamic> eachExp in mData){
+    for (Map<String, dynamic> eachExp in mData) {
       mExpenses.add(ExpenseModel.fromMap(eachExp));
     }
 
     return mExpenses;
-
   }
 }
